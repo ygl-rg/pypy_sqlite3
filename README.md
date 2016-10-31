@@ -8,3 +8,7 @@ run python _sqlite3_build.py and copy the .pyd(.so) & _sqlite3.py file to the li
 Why?
 
   I want to use the latest sqlite and its extensions. I found out the pypy version is easier to hack.
+  
+01/11/2016
+
+Connection supports backup
