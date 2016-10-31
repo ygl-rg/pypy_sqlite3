@@ -652,6 +652,17 @@ class Connection(object):
             if rc != _lib.SQLITE_OK:
                 raise OperationalError("Error enabling load extension")
 
+    def backup(self, target_conn_obj):
+        db_name = _ffi.new("char []", "main")
+        bk_obj = _lib.sqlite3_backup_init(target_conn_obj._db, db_name, self._db, db_name)
+        if bk_obj:
+            rc = _lib.SQLITE_OK
+            while rc == _lib.SQLITE_OK or rc == _lib.SQLITE_BUSY or rc == _lib.SQLITE_LOCKED:
+                rc = _lib.sqlite3_backup_step(bk_obj, 100)
+                if rc == _lib.SQLITE_OK or rc == _lib.SQLITE_BUSY or rc == _lib.SQLITE_LOCKED:
+                    _lib.sqlite3_sleep(5)
+            _lib.sqlite3_backup_finish(bk_obj)
+
 
 class Cursor(object):
     __initialized = False

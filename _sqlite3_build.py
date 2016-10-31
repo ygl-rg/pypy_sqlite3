@@ -109,6 +109,7 @@ typedef ... sqlite3;
 typedef ... sqlite3_stmt;
 typedef ... sqlite3_context;
 typedef ... sqlite3_value;
+typedef ... sqlite3_backup;
 typedef int64_t sqlite3_int64;
 typedef uint64_t sqlite3_uint64;
 
@@ -225,7 +226,14 @@ const void *sqlite3_value_text16le(sqlite3_value*);
 const void *sqlite3_value_text16be(sqlite3_value*);
 int sqlite3_value_type(sqlite3_value*);
 int sqlite3_value_numeric_type(sqlite3_value*);
+sqlite3_backup* sqlite3_backup_init(sqlite3*, const char*, sqlite3*, const char*);
+int sqlite3_backup_step(sqlite3_backup*, int);
+int sqlite3_backup_finish(sqlite3_backup*);
+int sqlite3_backup_remaining(sqlite3_backup*);
+int sqlite3_backup_pagecount(sqlite3_backup*);
+int sqlite3_sleep(int);
 """)
+
 
 def _has_load_extension():
     """Only available since 3.3.6"""
