@@ -3,7 +3,10 @@ sqlite3 module from pypy with static sqlite3 build
 
 How to use?
 
-run python _sqlite3_build.py and copy the .pyd(.so) & _sqlite3.py file to the lib.
+cd src
+
+run python _sqlite3_build.py and copy the .pyd(.so) & _sqlite3.py to the path.
+
 
 Why?
 
@@ -11,4 +14,4 @@ Why?
   
 01/11/2016
 
-Connection supports backup
+Connection supports backup, update sqlite version to 3.15
