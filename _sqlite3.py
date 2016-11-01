@@ -655,13 +655,16 @@ class Connection(object):
     def backup(self, target_conn_obj):
         db_name = _ffi.new("char []", "main")
         bk_obj = _lib.sqlite3_backup_init(target_conn_obj._db, db_name, self._db, db_name)
-        if bk_obj:
+        if bk_obj != _ffi.NULL:
             rc = _lib.SQLITE_OK
             while rc == _lib.SQLITE_OK or rc == _lib.SQLITE_BUSY or rc == _lib.SQLITE_LOCKED:
                 rc = _lib.sqlite3_backup_step(bk_obj, 100)
                 if rc == _lib.SQLITE_OK or rc == _lib.SQLITE_BUSY or rc == _lib.SQLITE_LOCKED:
                     _lib.sqlite3_sleep(5)
-            _lib.sqlite3_backup_finish(bk_obj)
+            if rc != _lib.SQLITE_DONE:
+                raise self._get_exception(rc)
+            else:
+                _lib.sqlite3_backup_finish(bk_obj)
 
 
 class Cursor(object):
