@@ -267,7 +267,8 @@ else:
     extra_args = dict(
         libraries=['pthread','dl'],
         include_dirs=['.'],
-        sources=['sqlite3.c'],define_macros=[('SQLITE_ENABLE_RTREE','1'),('SQLITE_ENABLE_JSON1','1'),('SQLITE_ENABLE_STATS3','1')]
+        sources=['sqlite3.c'],
+        define_macros=[('SQLITE_ENABLE_RTREE','1'),('SQLITE_ENABLE_JSON1','1'),('SQLITE_ENABLE_STATS4','1')]
     )
 
 _ffi.set_source("_sqlite3_cffi", "#include <sqlite3.h>", **extra_args)
