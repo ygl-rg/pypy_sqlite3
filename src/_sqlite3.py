@@ -480,6 +480,34 @@ class Connection(object):
 
     @_check_thread_wrap
     @_check_closed_wrap
+    def create_det_function(self, name, num_args, callback):
+        """
+        create a deterministic function
+        :param name:
+        :param num_args:
+        :param callback:
+        :return:
+        """
+        try:
+            closure = self.__func_cache[callback]
+        except KeyError:
+            @_ffi.callback("void(sqlite3_context*, int, sqlite3_value**)")
+            def closure(context, nargs, c_params):
+                _function_callback(callback, context, nargs, c_params)
+
+            self.__func_cache[callback] = closure
+
+        if isinstance(name, unicode):
+            name = name.encode('utf-8')
+        ret = _lib.sqlite3_create_function(self._db, name, num_args,
+                                           (_lib.SQLITE_UTF8 | _lib.SQLITE_DETERMINISTIC),
+                                           _ffi.NULL,
+                                           closure, _ffi.NULL, _ffi.NULL)
+        if ret != _lib.SQLITE_OK:
+            raise self.OperationalError("Error creating function")
+
+    @_check_thread_wrap
+    @_check_closed_wrap
     def create_aggregate(self, name, num_args, cls):
         try:
             step_callback, final_callback = self.__aggregates[cls]
@@ -665,6 +693,36 @@ class Connection(object):
                 raise self._get_exception(rc)
             else:
                 _lib.sqlite3_backup_finish(bk_obj)
+
+    def execute_query_plan(self, sql, params):
+        if isinstance(sql, unicode):
+            sql = sql.encode('utf-8')
+        stmt_obj = Statement(self, sql)
+        stmt_obj._set_params(params)
+        explain_stmt = _ffi.new('sqlite3_stmt **')
+        c_prefix = _ffi.new("char[]", "EXPLAIN QUERY PLAN %s")
+        c_sql = _lib.sqlite3_sql(stmt_obj._statement)
+        c_explain_sql = _lib.sqlite3_mprintf(c_prefix, c_sql)
+        if c_explain_sql == _ffi.NULL:
+            raise self._get_exception(_lib.SQLITE_NOMEM)
+        ret = _lib.sqlite3_prepare_v2(self._db, c_explain_sql, -1,
+                                      explain_stmt, _ffi.NULL)
+        _lib.sqlite3_free(c_explain_sql)
+        if ret != _lib.SQLITE_OK:
+            raise self._get_exception(ret)
+        result = []
+        while _lib.sqlite3_step(explain_stmt[0]) == _lib.SQLITE_ROW:
+            row = [_lib.sqlite3_column_int(explain_stmt[0], 0),
+                   _lib.sqlite3_column_int(explain_stmt[0], 1),
+                   _lib.sqlite3_column_int(explain_stmt[0], 2)]
+            detail_c = _lib.sqlite3_column_text(explain_stmt[0], 3)
+            detail_len = _lib.sqlite3_column_bytes(explain_stmt[0], 3)
+            buf_obj = _ffi.buffer(detail_c, detail_len)
+            detail_str = self.text_factory(buf_obj)
+            row.append(detail_str)
+            result.append(row)
+        _lib.sqlite3_finalize(explain_stmt[0])
+        return result
 
 
 class Cursor(object):

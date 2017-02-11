@@ -102,6 +102,7 @@ static void *const SQLITE_TRANSIENT;
 #define SQLITE_CREATE_VTABLE ...
 #define SQLITE_DROP_VTABLE ...
 #define SQLITE_FUNCTION ...
+#define SQLITE_DETERMINISTIC ...
 
 const char *sqlite3_libversion(void);
 
@@ -232,6 +233,9 @@ int sqlite3_backup_finish(sqlite3_backup*);
 int sqlite3_backup_remaining(sqlite3_backup*);
 int sqlite3_backup_pagecount(sqlite3_backup*);
 int sqlite3_sleep(int);
+char* sqlite3_mprintf(const char*, ...);
+void sqlite3_free(void*);
+const char *sqlite3_sql(sqlite3_stmt *pStmt);
 """)
 
 
