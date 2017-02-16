@@ -686,9 +686,9 @@ class Connection(object):
         if bk_obj != _ffi.NULL:
             rc = _lib.SQLITE_OK
             while rc == _lib.SQLITE_OK or rc == _lib.SQLITE_BUSY or rc == _lib.SQLITE_LOCKED:
-                rc = _lib.sqlite3_backup_step(bk_obj, 100)
+                rc = _lib.sqlite3_backup_step(bk_obj, 10000)
                 if rc == _lib.SQLITE_OK or rc == _lib.SQLITE_BUSY or rc == _lib.SQLITE_LOCKED:
-                    _lib.sqlite3_sleep(5)
+                    _lib.sqlite3_sleep(1)
             if rc != _lib.SQLITE_DONE:
                 raise self._get_exception(rc)
             else:
