@@ -396,7 +396,10 @@ class Connection(object):
 
     def _begin(self):
         statement_star = _ffi.new('sqlite3_stmt **')
-        ret = _lib.sqlite3_prepare_v2(self._db, self.__begin_statement, -1,
+        #ret = _lib.sqlite3_prepare_v2(self._db, self.__begin_statement, -1,
+        #                              statement_star, _ffi.NULL)
+        ret = _lib.sqlite3_prepare_v3(self._db, self.__begin_statement, -1,
+                                      _lib.SQLITE_PREPARE_PERSISTENT,
                                       statement_star, _ffi.NULL)
         try:
             if ret != _lib.SQLITE_OK:
@@ -417,7 +420,10 @@ class Connection(object):
         self.__do_all_statements(Statement._reset, False)
 
         statement_star = _ffi.new('sqlite3_stmt **')
-        ret = _lib.sqlite3_prepare_v2(self._db, b"COMMIT", -1,
+        #ret = _lib.sqlite3_prepare_v2(self._db, b"COMMIT", -1,
+        #                              statement_star, _ffi.NULL)
+        ret = _lib.sqlite3_prepare_v3(self._db, b"COMMIT", -1,
+                                      _lib.SQLITE_PREPARE_PERSISTENT,
                                       statement_star, _ffi.NULL)
         try:
             if ret != _lib.SQLITE_OK:
@@ -438,7 +444,10 @@ class Connection(object):
         self.__do_all_statements(Statement._reset, True)
 
         statement_star = _ffi.new('sqlite3_stmt **')
-        ret = _lib.sqlite3_prepare_v2(self._db, b"ROLLBACK", -1,
+        #ret = _lib.sqlite3_prepare_v2(self._db, b"ROLLBACK", -1,
+        #                              statement_star, _ffi.NULL)
+        ret = _lib.sqlite3_prepare_v3(self._db, b"ROLLBACK", -1,
+                                      _lib.SQLITE_PREPARE_PERSISTENT,
                                       statement_star, _ffi.NULL)
         try:
             if ret != _lib.SQLITE_OK:
@@ -705,7 +714,10 @@ class Connection(object):
         c_explain_sql = _lib.sqlite3_mprintf(c_prefix, c_sql)
         if c_explain_sql == _ffi.NULL:
             raise self._get_exception(_lib.SQLITE_NOMEM)
-        ret = _lib.sqlite3_prepare_v2(self._db, c_explain_sql, -1,
+        #ret = _lib.sqlite3_prepare_v2(self._db, c_explain_sql, -1,
+        #                              explain_stmt, _ffi.NULL)
+        ret = _lib.sqlite3_prepare_v3(self._db, c_explain_sql, -1,
+                                      _lib.SQLITE_PREPARE_PERSISTENT,
                                       explain_stmt, _ffi.NULL)
         _lib.sqlite3_free(c_explain_sql)
         if ret != _lib.SQLITE_OK:
@@ -1082,7 +1094,10 @@ class Statement(object):
         statement_star = _ffi.new('sqlite3_stmt **')
         next_char = _ffi.new('char **')
         c_sql = _ffi.new("char[]", sql)
-        ret = _lib.sqlite3_prepare_v2(self.__con._db, c_sql, -1,
+        #ret = _lib.sqlite3_prepare_v2(self.__con._db, c_sql, -1,
+        #                              statement_star, next_char)
+        ret = _lib.sqlite3_prepare_v3(self.__con._db, c_sql, -1,
+                                      _lib.SQLITE_PREPARE_PERSISTENT,
                                       statement_star, next_char)
         self._statement = statement_star[0]
 
@@ -1090,7 +1105,10 @@ class Statement(object):
             # an empty statement, work around that, as it's the least trouble
             self._type = _STMT_TYPE_SELECT
             c_sql = _ffi.new("char[]", b"select 42")
-            ret = _lib.sqlite3_prepare_v2(self.__con._db, c_sql, -1,
+            #ret = _lib.sqlite3_prepare_v2(self.__con._db, c_sql, -1,
+            #                              statement_star, next_char)
+            ret = _lib.sqlite3_prepare_v3(self.__con._db, c_sql, -1,
+                                          _lib.SQLITE_PREPARE_PERSISTENT,
                                           statement_star, next_char)
             self._statement = statement_star[0]
 

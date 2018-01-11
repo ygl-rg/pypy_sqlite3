@@ -103,6 +103,7 @@ static void *const SQLITE_TRANSIENT;
 #define SQLITE_DROP_VTABLE ...
 #define SQLITE_FUNCTION ...
 #define SQLITE_DETERMINISTIC ...
+#define SQLITE_PREPARE_PERSISTENT ...
 
 const char *sqlite3_libversion(void);
 
@@ -128,6 +129,14 @@ int sqlite3_prepare_v2(
     int nByte,              /* Maximum length of zSql in bytes. */
     sqlite3_stmt **ppStmt,  /* OUT: Statement handle */
     const char **pzTail     /* OUT: Pointer to unused portion of zSql */
+);
+int sqlite3_prepare_v3(
+  sqlite3 *db,            /* Database handle */
+  const char *zSql,       /* SQL statement, UTF-8 encoded */
+  int nByte,              /* Maximum length of zSql in bytes. */
+  unsigned int prepFlags, /* Zero or more SQLITE_PREPARE_ flags */
+  sqlite3_stmt **ppStmt,  /* OUT: Statement handle */
+  const char **pzTail     /* OUT: Pointer to unused portion of zSql */
 );
 int sqlite3_finalize(sqlite3_stmt *pStmt);
 int sqlite3_data_count(sqlite3_stmt *pStmt);
@@ -233,6 +242,7 @@ int sqlite3_backup_finish(sqlite3_backup*);
 int sqlite3_backup_remaining(sqlite3_backup*);
 int sqlite3_backup_pagecount(sqlite3_backup*);
 int sqlite3_sleep(int);
+
 char* sqlite3_mprintf(const char*, ...);
 void sqlite3_free(void*);
 const char *sqlite3_sql(sqlite3_stmt *pStmt);
@@ -264,7 +274,7 @@ if sys.platform.startswith('freebsd'):
         #libraries=['sqlite3'],
         libraries=['pthread','dl'],
         include_dirs=[os.path.join(_localbase, 'include')]+['.'],
-        sources=['sqlite3.c'],define_macros=[('SQLITE_ENABLE_RTREE','1'),('SQLITE_ENABLE_JSON1','1'),('SQLITE_ENABLE_STATS4','1')],
+        sources=['sqlite3.c'],define_macros=[('SQLITE_ENABLE_RTREE','1'),('SQLITE_ENABLE_JSON1','1'),('SQLITE_ENABLE_STATS4','1'),('SQLITE_ENABLE_BATCH_ATOMIC_WRITE', '1')],
         library_dirs=[os.path.join(_localbase, 'lib')]
     )
 else:
@@ -272,7 +282,7 @@ else:
         libraries=['pthread','dl'],
         include_dirs=['.'],
         sources=['sqlite3.c'],
-        define_macros=[('SQLITE_ENABLE_RTREE','1'),('SQLITE_ENABLE_JSON1','1'),('SQLITE_ENABLE_STATS4','1')]
+        define_macros=[('SQLITE_ENABLE_RTREE','1'),('SQLITE_ENABLE_JSON1','1'),('SQLITE_ENABLE_STATS4','1'),('SQLITE_ENABLE_BATCH_ATOMIC_WRITE', '1')]
     )
 
 _ffi.set_source("_sqlite3_cffi", "#include <sqlite3.h>", **extra_args)
