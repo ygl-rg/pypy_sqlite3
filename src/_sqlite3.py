@@ -692,7 +692,7 @@ class Connection(object):
                 raise OperationalError("Error enabling load extension")
 
     def backup(self, target_conn_obj):
-        db_name = _ffi.new("char []", "main")
+        db_name = _ffi.new("char []", b"main")
         bk_obj = _lib.sqlite3_backup_init(target_conn_obj._db, db_name, self._db, db_name)
         if bk_obj != _ffi.NULL:
             rc = _lib.SQLITE_OK
@@ -706,18 +706,14 @@ class Connection(object):
                 _lib.sqlite3_backup_finish(bk_obj)
 
     def execute_query_plan(self, sql, params):
-        if isinstance(sql, unicode):
-            sql = sql.encode('utf-8')
         stmt_obj = Statement(self, sql)
         stmt_obj._set_params(params)
         explain_stmt = _ffi.new('sqlite3_stmt **')
-        c_prefix = _ffi.new("char[]", "EXPLAIN QUERY PLAN %s")
+        c_prefix = _ffi.new("char[]", b"EXPLAIN QUERY PLAN %s")
         c_sql = _lib.sqlite3_sql(stmt_obj._statement)
         c_explain_sql = _lib.sqlite3_mprintf(c_prefix, c_sql)
         if c_explain_sql == _ffi.NULL:
             raise self._get_exception(_lib.SQLITE_NOMEM)
-        #ret = _lib.sqlite3_prepare_v2(self._db, c_explain_sql, -1,
-        #                              explain_stmt, _ffi.NULL)
         ret = _lib.sqlite3_prepare_v3(self._db, c_explain_sql, -1,
                                       _lib.SQLITE_PREPARE_PERSISTENT,
                                       explain_stmt, _ffi.NULL)
