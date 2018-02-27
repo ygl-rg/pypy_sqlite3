@@ -29,7 +29,7 @@ import datetime
 import string
 import sys
 import weakref
-from threading import _get_ident as _thread_get_ident
+import threading
 try:
     from __pypy__ import newlist_hint
 except ImportError:
@@ -44,8 +44,10 @@ if sys.version_info[0] >= 3:
     basestring = unicode = str
     buffer = memoryview
     _BLOB_TYPE = bytes
+    _thread_get_ident = threading.get_ident
 else:
     _BLOB_TYPE = buffer
+    _thread_get_ident = threading._get_ident
 
 from _sqlite3_cffi import ffi as _ffi, lib as _lib
 
@@ -157,6 +159,7 @@ def connect(database, timeout=5.0, detect_types=0, isolation_level="",
 def _unicode_text_factory(x):
     return unicode(x, 'utf-8')
 
+
 if sys.version_info[0] < 3:
     def OptimizedUnicode(s):
         try:
@@ -227,7 +230,6 @@ class Connection(object):
         self.__collations = {}
         if check_same_thread:
             self.__thread_ident = _thread_get_ident()
-
         self.Error = Error
         self.Warning = Warning
         self.InterfaceError = InterfaceError
@@ -1238,7 +1240,7 @@ class Statement(object):
         for i in xrange(_lib.sqlite3_column_count(self._statement)):
             name = _lib.sqlite3_column_name(self._statement, i)
             if name:
-                name = _ffi.string(name).split("[")[0].strip()
+                name = _ffi.string(name).decode('utf-8').split("[")[0].strip()
             desc.append((name, None, None, None, None, None, None))
         return desc
 
