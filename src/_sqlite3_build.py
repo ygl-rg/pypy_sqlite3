@@ -274,7 +274,8 @@ if sys.platform.startswith('freebsd'):
         #libraries=['sqlite3'],
         libraries=['pthread','dl'],
         include_dirs=[os.path.join(_localbase, 'include')]+['.'],
-        sources=['sqlite3.c'],define_macros=[('SQLITE_ENABLE_RTREE','1'),('SQLITE_ENABLE_JSON1','1'),('SQLITE_ENABLE_STATS4','1'),('SQLITE_ENABLE_BATCH_ATOMIC_WRITE', '1')],
+        sources=['sqlite3.c'],
+        define_macros=[('SQLITE_ENABLE_RTREE','1'),('SQLITE_ENABLE_JSON1','1'),('SQLITE_ENABLE_STATS4','1'),('SQLITE_ENABLE_BATCH_ATOMIC_WRITE', '1'),('SQLITE_ENABLE_GEOPOLY', 1)],
         library_dirs=[os.path.join(_localbase, 'lib')]
     )
 else:
@@ -282,7 +283,7 @@ else:
         libraries=['pthread','dl'],
         include_dirs=['.'],
         sources=['sqlite3.c'],
-        define_macros=[('SQLITE_ENABLE_RTREE','1'),('SQLITE_ENABLE_JSON1','1'),('SQLITE_ENABLE_STATS4','1'),('SQLITE_ENABLE_BATCH_ATOMIC_WRITE', '1')]
+        define_macros=[('SQLITE_ENABLE_RTREE','1'),('SQLITE_ENABLE_JSON1','1'),('SQLITE_ENABLE_STATS4','1'),('SQLITE_ENABLE_BATCH_ATOMIC_WRITE', '1'),('SQLITE_ENABLE_GEOPOLY', 1)]
     )
 
 _ffi.set_source("_sqlite3_cffi", "#include <sqlite3.h>", **extra_args)
