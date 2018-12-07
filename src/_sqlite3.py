@@ -31,10 +31,11 @@ import sys
 import weakref
 import threading
 try:
-    from __pypy__ import newlist_hint
+    from __pypy__ import newlist_hint, add_memory_pressure
 except ImportError:
     assert '__pypy__' not in sys.builtin_module_names
     newlist_hint = lambda sizehint: []
+    add_memory_pressure = lambda size: None
 
 if sys.version_info[0] >= 3:
     StandardError = Exception
@@ -150,10 +151,13 @@ class NotSupportedError(DatabaseError):
 
 
 def connect(database, timeout=5.0, detect_types=0, isolation_level="",
-                 check_same_thread=True, factory=None, cached_statements=100):
+                 check_same_thread=True, factory=None, cached_statements=100,
+            uri=0):
     factory = Connection if not factory else factory
     return factory(database, timeout, detect_types, isolation_level,
-                    check_same_thread, factory, cached_statements)
+                    check_same_thread, factory, cached_statements, uri)
+    add_memory_pressure(100 * 1024)
+    return res
 
 
 def _unicode_text_factory(x):
@@ -197,14 +201,23 @@ class Connection(object):
     _db = None
 
     def __init__(self, database, timeout=5.0, detect_types=0, isolation_level="",
-                 check_same_thread=True, factory=None, cached_statements=100):
+                 check_same_thread=True, factory=None, cached_statements=100, uri=0):
         self.__initialized = True
         db_star = _ffi.new('sqlite3 **')
 
         if isinstance(database, unicode):
             database = database.encode('utf-8')
-        if _lib.sqlite3_open(database, db_star) != _lib.SQLITE_OK:
-            raise OperationalError("Could not open database")
+        if _lib.SQLITE_OPEN_URI != 0:
+            if uri and _lib.SQLITE_OPEN_URI == 0:
+                raise NotSupportedError("URIs not supported")
+            flags = _lib.SQLITE_OPEN_READWRITE | _lib.SQLITE_OPEN_CREATE
+            if uri:
+                flags |= _lib.SQLITE_OPEN_URI
+            if _lib.sqlite3_open_v2(database, db_star, flags, _ffi.NULL) != _lib.SQLITE_OK:
+                raise OperationalError("Could not open database")
+        else:
+            if _lib.sqlite3_open(database, db_star) != _lib.SQLITE_OK:
+                raise OperationalError("Could not open database")
         self._db = db_star[0]
         if timeout is not None:
             timeout = int(timeout * 1000)  # pysqlite2 uses timeout in seconds

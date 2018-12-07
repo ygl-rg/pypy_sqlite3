@@ -105,7 +105,12 @@ static void *const SQLITE_TRANSIENT;
 #define SQLITE_DETERMINISTIC ...
 #define SQLITE_PREPARE_PERSISTENT ...
 
+static const long SQLITE_OPEN_URI;
+static const long SQLITE_OPEN_READWRITE;
+static const long SQLITE_OPEN_CREATE;
+
 const char *sqlite3_libversion(void);
+int sqlite3_libversion_number(void);
 
 typedef ... sqlite3;
 typedef ... sqlite3_stmt;
@@ -118,6 +123,13 @@ typedef uint64_t sqlite3_uint64;
 int sqlite3_open(
     const char *filename,   /* Database filename (UTF-8) */
     sqlite3 **ppDb          /* OUT: SQLite db handle */
+);
+
+int sqlite3_open_v2(
+  const char *filename,   /* Database filename (UTF-8) */
+  sqlite3 **ppDb,         /* OUT: SQLite db handle */
+  int flags,              /* Flags */
+  const char *zVfs        /* Name of VFS module to use */
 );
 
 int sqlite3_close(sqlite3 *);
