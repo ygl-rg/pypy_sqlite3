@@ -261,38 +261,27 @@ const char *sqlite3_sql(sqlite3_stmt *pStmt);
 """)
 
 
-def _has_load_extension():
-    """Only available since 3.3.6"""
-    unverified_ffi = _FFI()
-    unverified_ffi.cdef("""
-    typedef ... sqlite3;
-    int sqlite3_enable_load_extension(sqlite3 *db, int onoff);
-    """)
-    libname = 'sqlite3'
-    if sys.platform == 'win32':
-        import os
-        _libname = os.path.join(os.path.dirname(sys.executable), libname)
-        if os.path.exists(_libname + '.dll'):
-            libname = _libname
-    unverified_lib = unverified_ffi.dlopen(libname)
-    return hasattr(unverified_lib, 'sqlite3_enable_load_extension')
 
-if _has_load_extension():
-    _ffi.cdef("int sqlite3_enable_load_extension(sqlite3 *db, int onoff);")
+_ffi.cdef("int sqlite3_enable_load_extension(sqlite3 *db, int onoff);")
 
 if sys.platform.startswith('freebsd'):
     _localbase = os.environ.get('LOCALBASE', '/usr/local')
     extra_args = dict(
-        #libraries=['sqlite3'],
         libraries=['pthread','dl'],
         include_dirs=[os.path.join(_localbase, 'include')]+['.'],
         sources=['sqlite3.c'],
         define_macros=[('SQLITE_ENABLE_RTREE','1'),('SQLITE_ENABLE_JSON1','1'),('SQLITE_ENABLE_STATS4','1'),('SQLITE_ENABLE_BATCH_ATOMIC_WRITE', '1'),('SQLITE_ENABLE_GEOPOLY', 1)],
         library_dirs=[os.path.join(_localbase, 'lib')]
     )
-else:
+elif sys.platform.startswith('linux'):
     extra_args = dict(
         libraries=['pthread','dl'],
+        include_dirs=['.'],
+        sources=['sqlite3.c'],
+        define_macros=[('SQLITE_ENABLE_RTREE','1'),('SQLITE_ENABLE_JSON1','1'),('SQLITE_ENABLE_STATS4','1'),('SQLITE_ENABLE_BATCH_ATOMIC_WRITE', '1'),('SQLITE_ENABLE_GEOPOLY', 1)]
+    )
+else:
+    extra_args = dict(
         include_dirs=['.'],
         sources=['sqlite3.c'],
         define_macros=[('SQLITE_ENABLE_RTREE','1'),('SQLITE_ENABLE_JSON1','1'),('SQLITE_ENABLE_STATS4','1'),('SQLITE_ENABLE_BATCH_ATOMIC_WRITE', '1'),('SQLITE_ENABLE_GEOPOLY', 1)]
