@@ -180,8 +180,8 @@ const unsigned char *sqlite3_column_text(sqlite3_stmt*, int iCol);
 const void *sqlite3_column_text16(sqlite3_stmt*, int iCol);
 int sqlite3_column_type(sqlite3_stmt*, int iCol);
 const char *sqlite3_column_decltype(sqlite3_stmt*,int);
-
 void sqlite3_progress_handler(sqlite3*, int, int(*)(void*), void*);
+void sqlite3_trace(sqlite3*, void(*)(void*, const char*), void*);
 int sqlite3_create_collation(
     sqlite3*,
     const char *zName,
@@ -254,7 +254,7 @@ int sqlite3_backup_finish(sqlite3_backup*);
 int sqlite3_backup_remaining(sqlite3_backup*);
 int sqlite3_backup_pagecount(sqlite3_backup*);
 int sqlite3_sleep(int);
-
+const char *sqlite3_errstr(int);
 char* sqlite3_mprintf(const char*, ...);
 void sqlite3_free(void*);
 const char *sqlite3_sql(sqlite3_stmt *pStmt);
@@ -270,24 +270,39 @@ if sys.platform.startswith('freebsd'):
         libraries=['pthread','dl'],
         include_dirs=[os.path.join(_localbase, 'include')]+['.'],
         sources=['sqlite3.c'],
-        define_macros=[('SQLITE_ENABLE_RTREE','1'),('SQLITE_ENABLE_JSON1','1'),('SQLITE_ENABLE_STATS4','1'),('SQLITE_ENABLE_BATCH_ATOMIC_WRITE', '1'),('SQLITE_ENABLE_GEOPOLY', 1)],
+        define_macros=[('SQLITE_ENABLE_RTREE','1'),('SQLITE_ENABLE_JSON1', '1'), ('SQLITE_ENABLE_STATS4', '1'), ('SQLITE_ENABLE_BATCH_ATOMIC_WRITE', '1'), ('SQLITE_ENABLE_GEOPOLY', 1)],
         library_dirs=[os.path.join(_localbase, 'lib')]
     )
 elif sys.platform.startswith('linux'):
     extra_args = dict(
-        libraries=['pthread','dl'],
+        libraries=['pthread', 'dl'],
         include_dirs=['.'],
         sources=['sqlite3.c'],
-        define_macros=[('SQLITE_ENABLE_RTREE','1'),('SQLITE_ENABLE_JSON1','1'),('SQLITE_ENABLE_STATS4','1'),('SQLITE_ENABLE_BATCH_ATOMIC_WRITE', '1'),('SQLITE_ENABLE_GEOPOLY', 1)]
+        define_macros=[('SQLITE_ENABLE_RTREE', '1'), ('SQLITE_ENABLE_JSON1', '1'), ('SQLITE_ENABLE_STATS4', '1'), ('SQLITE_ENABLE_BATCH_ATOMIC_WRITE', '1'), ('SQLITE_ENABLE_GEOPOLY', 1)]
     )
 else:
     extra_args = dict(
         include_dirs=['.'],
         sources=['sqlite3.c'],
-        define_macros=[('SQLITE_ENABLE_RTREE','1'),('SQLITE_ENABLE_JSON1','1'),('SQLITE_ENABLE_STATS4','1'),('SQLITE_ENABLE_BATCH_ATOMIC_WRITE', '1'),('SQLITE_ENABLE_GEOPOLY', 1)]
+        define_macros=[('SQLITE_ENABLE_RTREE', '1'), ('SQLITE_ENABLE_JSON1', '1'), ('SQLITE_ENABLE_STATS4', '1'), ('SQLITE_ENABLE_BATCH_ATOMIC_WRITE', '1'), ('SQLITE_ENABLE_GEOPOLY', 1)]
     )
 
-_ffi.set_source("_sqlite3_cffi", "#include <sqlite3.h>", **extra_args)
+SOURCE = """
+#include <sqlite3.h>
+
+#ifndef SQLITE_OPEN_URI
+static const long SQLITE_OPEN_URI = 0;
+#endif
+#ifndef SQLITE_OPEN_READWRITE
+static const long SQLITE_OPEN_READWRITE = 0;
+#endif
+#ifndef SQLITE_OPEN_CREATE
+static const long SQLITE_OPEN_CREATE = 0;
+#endif
+"""
+
+_ffi.set_source("_sqlite3_cffi", SOURCE, **extra_args)
+
 
 
 if __name__ == "__main__":
