@@ -435,7 +435,7 @@ class Connection(object):
 
     def _begin(self):
         statement_star = _ffi.new('sqlite3_stmt **')
-        ret = _lib.sqlite3_prepare_v3(self._db, self.__begin_statement, -1,
+        ret = _lib.sqlite3_prepare_v3(self._db, self._begin_statement, -1,
                                       _lib.SQLITE_PREPARE_PERSISTENT,
                                       statement_star, _ffi.NULL)
         try:
